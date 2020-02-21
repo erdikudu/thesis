@@ -23,7 +23,7 @@ public class Main extends Application {
 
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/view/MainScreen.fxml"));
-        primaryStage.setTitle("JSSP");
+        primaryStage.setTitle("JSSP- Halic University- Erdi Kudu");
         primaryStage.setScene(new Scene(root));
 
         primaryStage.show();

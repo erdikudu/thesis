@@ -11,7 +11,7 @@ import java.util.Comparator;
 public class PSO implements Algorithm {
 
     private int swarmSize = 25; // Should be between 10-50
-    private int neighbourhoodSize = 25; // Should be either 3 or 5
+    private int neighbourhoodSize = 5; // Should be either 3 or 5
     private double importanceOfPersonalBest = 2;      // C1
     private double importanceOfNeighbourhoodBest = 2; // C2
     public static final double maxVelocity = 0.05;

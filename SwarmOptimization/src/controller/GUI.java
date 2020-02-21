@@ -13,8 +13,13 @@ import javafx.scene.paint.Color;
 import model.*;
 import model.utils.Data;
 import view.GanttChart;
+import java.util.Timer;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -101,6 +106,23 @@ public class GUI implements Initializable {
         chart.setAnimated(false);
         chart.getStylesheets().add(getClass().getResource("../view/ganttchart.css").toExternalForm());
     }
+    
+    private static void printUsage() {
+    	  OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
+    	  for (Method method : operatingSystemMXBean.getClass().getDeclaredMethods()) {
+    	    method.setAccessible(true);
+    	    if (method.getName().startsWith("get")
+    	        && Modifier.isPublic(method.getModifiers())) {
+    	            Object value;
+    	        try {
+    	            value = method.invoke(operatingSystemMXBean);
+    	        } catch (Exception e) {
+    	            value = e;
+    	        } // try
+    	        System.out.println(method.getName() + " = " + value);
+    	    } // if
+    	  } // for
+    	}
 
     @FXML
     private void onCBChange() {
@@ -169,37 +191,47 @@ public class GUI implements Initializable {
 
     @FXML
     private void avgAndDev(){
-        RadioButton selectedRadioButton = (RadioButton) algorithmChoice.getSelectedToggle();
-        Algorithm algorithm;
+        
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+        	@Override
+    		public void run() {
+        		RadioButton selectedRadioButton = (RadioButton) algorithmChoice.getSelectedToggle();
+                Algorithm algorithm;
 
-        int numberOfRuns = 100;
-        double sum = 0.0;
-        double[] results = new double[numberOfRuns];
-
-        for (int i=0; i<numberOfRuns;i++){
-            if(selectedRadioButton.getText().equals("BA")) {
-                algorithm = new BA();
-            }
-            else {
-                algorithm = new PSO();
-            }
-            algorithm.run();
-            results[i] = algorithm.getBestSolution().getFitness();
-            sum += algorithm.getBestSolution().getFitness();
-        }
-        double avg = sum/numberOfRuns;
-        double sd = 0.0;
-        for(double x : results){
-            sd += Math.pow(x-avg,2);
-        }
-        sd /= (numberOfRuns-1);
-        sd = Math.sqrt(sd);
-
-        System.out.println("Results whit n=" + numberOfRuns+", on: "+selectedRadioButton.getText());
-        System.out.println("Average: " + avg);
-        System.out.println("Standard deviation: " + sd);
-
-
+                int numberOfRuns = 100;
+                double sum = 0.0;
+                double[] results = new double[numberOfRuns];
+    			// TODO Auto-generated method stub
+        		final long start = System.currentTimeMillis();
+                for (int i=0; i<numberOfRuns;i++){
+                    if(selectedRadioButton.getText().equals("BA")) {
+                        algorithm = new BA();
+                    }
+                    else {
+                        algorithm = new PSO();
+                    }
+                    algorithm.run();
+                    results[i] = algorithm.getBestSolution().getFitness();
+                    sum += algorithm.getBestSolution().getFitness();
+                }
+                double avg = sum/numberOfRuns;
+                double sd = 0.0;
+                for(double x : results){
+                    sd += Math.pow(x-avg,2);
+                }
+        		
+                
+                sd /= (numberOfRuns-1);
+                sd = Math.sqrt(sd);
+                System.out.print("Task invoked: " +(System.currentTimeMillis() - start) + " ms");
+                timer.cancel();
+                System.out.println("Results whit n=" + numberOfRuns+", on: "+selectedRadioButton.getText());
+                System.out.println("Average: " + avg);
+                System.out.println("Standard deviation: " + sd);
+    		}
+        
+        }, 1000);
     }
 
     @FXML
@@ -220,21 +252,30 @@ public class GUI implements Initializable {
         t.start();
 
     }
+    
 
     private void printBest(ArrayList<Gantt> results){
         RadioButton selectedRadioButton = (RadioButton) algorithmChoice.getSelectedToggle();
         Gantt best = null;
+        Gantt worst = null;
         for (Gantt result : results) {
             if (best == null) {
                 best = result;
             } else if (best.getFitness() > result.getFitness()) {
                 best = result;
             }
+            if(worst == null) {
+            	worst=result;
+            }else if(worst.getFitness() < result.getFitness()) {
+            	worst=result;
+            }
         }
         drawBest(best);
 
         fit.setText("Makespan: "+ best.getFitness());
+        printUsage();
         System.out.println("Best of 100." + selectedRadioButton.getText() + " solution created. Makespan: " + best.getFitness());
+        System.out.println("Worst of 100." + selectedRadioButton.getText() + " solution created. Makespan: " + worst.getFitness());
 
         avgBtn.setDisable(false);
         hundredBtn.setDisable(false);

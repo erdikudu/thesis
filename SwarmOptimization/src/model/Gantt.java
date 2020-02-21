@@ -16,7 +16,7 @@ public class Gantt {
         int[] jobTimeLine = new int[Main.n];
 
         for(int i = 0; i < Main.m; i++) {
-            machineTimeline.add(new ArrayList<>());
+            machineTimeline.add(new ArrayList<Node>());
         }
 
         PriorityQueue<Node> place = new PriorityQueue<>();
